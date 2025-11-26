@@ -38,7 +38,7 @@ class CreateUserView(APIView):
             f"Password: {created_user_data['generated_password']}\n\n"
             "Please change your password after first login."
         )
-        
+
         send_email_with_record(
             email=created_user_data['email'],
             subject="Your Account Credentials",
@@ -62,8 +62,11 @@ class LoginView(APIView):
             # Try email
             try:
                 print(identifier)
+                print(User.objects.all())
                 user_obj = User.objects.get(email=identifier)
                 print(user_obj)
+                print(user_obj.username)
+                print(user_obj.check_password(password))
                 user = authenticate(username=user_obj.username, password=password)
             except User.DoesNotExist:
                 return Response({"error": "User Doesnot exist"}, status=500)

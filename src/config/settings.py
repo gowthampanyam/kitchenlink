@@ -9,11 +9,16 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import os
+from dotenv import load_dotenv
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+PROJECT_ROOT = BASE_DIR.parent
+
+load_dotenv(PROJECT_ROOT / ".env")
 
 
 # Quick-start development settings - unsuitable for production
@@ -41,6 +46,7 @@ INSTALLED_APPS = [
     'notifications',
     'rest_framework',
     'rest_framework_simplejwt',
+    'menu',
 ]
 
 MIDDLEWARE = [
@@ -80,9 +86,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'kitchenlink',
-        'USER': 'admin',
-        'PASSWORD': 'kitchenlink@123',
+        'NAME': os.getenv("DB_NAME"),
+        'USER': os.getenv("DB_USER"),
+        'PASSWORD': os.getenv("DB_PASSWORD"),
         'HOST': 'localhost',   # or the IP of your database server
         'PORT': '5432',        # default Postgres port
     }
@@ -132,15 +138,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = "accounts.User"  
 
-DEFAULT_FROM_EMAIL = "Kitchenlink <kitchenlink3@gmail.com>" 
- 
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "kitchenlink3@gmail.com"
-EMAIL_HOST_PASSWORD = "veupaxvntiosbogi"
-EMAIL_USE_TLS = True
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True") == "True"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+# EMAIL_USE_TLS = True
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -151,3 +157,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     )
 }
+
+# Media files (uploaded images)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
