@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import status
 from .serializers import UserCreateSerializer
 from .models import Role
 from notifications.utils import send_email_with_record
@@ -83,3 +84,48 @@ class LoginView(APIView):
         token = jwt.encode(payload, settings.SECRET_KEY, algorithm="HS256")
 
         return Response({"token": token})
+
+class DeleteUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        """
+        Delete a user by ID.
+        Only Manager (role.level >= 4) or Owner (role.level >= 5) can delete a user.
+        A manager cannot delete an owner or another manager.
+        An owner can delete anyone except themselves.
+        """
+
+        actor = request.user  # the person performing the delete action
+
+        # Check role
+        if not actor.role or actor.role.level < 4:
+            return Response(
+                {"error": "Only managers or owners can delete users"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            target_user = User.objects.get(id=pk)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Prevent deleting yourself
+        if actor.id == target_user.id:
+            return Response({"error": "You cannot delete your own account"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Prevent deleting same-level or higher-level users
+        if target_user.role and actor.role.level <= target_user.role.level:
+            return Response(
+                {"error": "You cannot delete a user with equal or higher role"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Delete and confirm
+        username = target_user.username
+        target_user.delete()
+
+        return Response(
+            {"message": f"User '{username}' has been deleted successfully"},
+            status=status.HTTP_200_OK
+        )
