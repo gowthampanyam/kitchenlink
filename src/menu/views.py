@@ -109,6 +109,7 @@ class GetAllMenuItems(APIView):
                 "available": item.available,
                 "image_url": image_url,
                 "cooking_options": item.cooking_options,
+                "prep_time": item.prep_time,
             })
 
         return Response({"menu_items": results})

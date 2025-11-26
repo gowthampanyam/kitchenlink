@@ -20,6 +20,7 @@ class MenuItem(models.Model):
     cooking_options = models.CharField(max_length=255, blank=True, help_text="Comma separated cooking options like Rare,Medium,Well")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    prep_time = models.IntegerField(default=0, help_text="Preparation time in minutes")
 
     def __str__(self):
         return f"{self.name} - {self.category.name}"
